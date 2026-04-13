@@ -34,15 +34,32 @@ describe('fetch_releases', () => {
     let callCount = 0;
     globalThis.fetch = async () => {
       callCount++;
+      // First page returns 2 items against pageSize 10 — stops immediately, no second call
       return {
         ok: true,
         status: 200,
-        json: async () => (callCount === 1 ? mockReleases : []),
+        json: async () => mockReleases,
       };
     };
 
     await fetch_releases({ pageSize: 10, maxPages: 5 });
-    assert.equal(callCount, 2);
+    assert.equal(callCount, 1);
+  });
+
+  it('stops paginating on partial page without extra request', async () => {
+    let callCount = 0;
+    globalThis.fetch = async () => {
+      callCount++;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => mockReleases.slice(0, 1), // 1 item < pageSize of 10
+      };
+    };
+
+    const result = await fetch_releases({ pageSize: 10, maxPages: 5 });
+    assert.equal(callCount, 1);
+    assert.equal(result.length, 1);
   });
 
   it('throws on HTTP error', async () => {

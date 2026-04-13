@@ -39,7 +39,7 @@ export async function fetch_releases(params = {}) {
     const body = await res.json();
     const items = Array.isArray(body) ? body : (body.releases ?? body.data ?? []);
     releases.push(...items);
-    if (items.length === 0) break;
+    if (items.length < pageSize) break;
   }
   return releases;
 }
