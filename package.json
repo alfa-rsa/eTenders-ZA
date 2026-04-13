@@ -1,0 +1,14 @@
+{
+  "name": "etenders",
+  "version": "1.0.0",
+  "description": "eTenders OCDS API sub-agent for OpenClaw",
+  "type": "module",
+  "main": "etenders.js",
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "start": "node etenders.js"
+  },
+  "dependencies": {
+    "csv-stringify": "^6.5.1"
+  }
+}
