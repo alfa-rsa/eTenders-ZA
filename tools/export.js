@@ -9,7 +9,7 @@ export async function export_csv(params = {}) {
   const data = params.data ?? JSON.parse(readFileSync(params.inputFile, 'utf8'));
   const csv = stringify(data, { header: true });
   writeFileSync(params.filename, csv, 'utf8');
-  return { filename: params.filename, rows: data.length };
+  return { filename: params.filename, rows: Array.isArray(data) ? data.length : 1 };
 }
 
 export async function export_json(params = {}) {
