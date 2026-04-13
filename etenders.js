@@ -43,7 +43,8 @@ async function main() {
     process.exit(0);
   } catch (err) {
     process.stderr.write((err.stack ?? err.message) + '\n');
-    return fail(err.message);
+    process.stdout.write(JSON.stringify({ ok: false, error: err.message }) + '\n');
+    process.exit(1);
   }
 }
 

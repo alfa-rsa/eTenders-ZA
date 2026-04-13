@@ -40,7 +40,16 @@ export async function fetch_releases(params = {}) {
 
     const res = await fetchWithRetry(url.toString());
     const body = await res.json();
-    const items = Array.isArray(body) ? body : (body.releases ?? body.data ?? []);
+    let items;
+    if (Array.isArray(body)) {
+      items = body;
+    } else if (Array.isArray(body?.releases)) {
+      items = body.releases;
+    } else if (Array.isArray(body?.data)) {
+      items = body.data;
+    } else {
+      throw new Error(`Unexpected API response shape: ${JSON.stringify(body).slice(0, 200)}`);
+    }
     releases.push(...items);
     if (items.length < pageSize) break;
   }
