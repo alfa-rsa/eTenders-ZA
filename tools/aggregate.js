@@ -1,4 +1,7 @@
 // tools/aggregate.js
+// NOTE: All monetary values are assumed to be ZAR (South African Rand).
+// This is consistent with South African government procurement data on eTenders.
+// Mixed-currency aggregation is not handled in v1.
 import { fetch_releases } from './fetch.js';
 
 export async function aggregate_suppliers(params = {}) {
