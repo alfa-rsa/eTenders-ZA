@@ -11,9 +11,12 @@ async function fetchWithRetry(url, attempt = 0) {
   let res;
   try {
     res = await fetch(url, { signal: controller.signal });
-  } finally {
+  } catch (err) {
     clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('Request timed out');
+    throw new Error(`Network error: ${err.message}`);
   }
+  clearTimeout(timer);
   if (res.status === 429 && attempt < 3) {
     await sleep(1000 * Math.pow(2, attempt));
     return fetchWithRetry(url, attempt + 1);
