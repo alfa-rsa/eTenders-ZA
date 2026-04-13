@@ -32,7 +32,7 @@ function mockFetch() {
   globalThis.fetch = async () => ({
     ok: true,
     status: 200,
-    json: async () => mockReleases,
+    text: async () => JSON.stringify(mockReleases),
   });
 }
 
@@ -76,7 +76,7 @@ describe('aggregate_buyers', () => {
       { ocid: '003', buyer: { name: 'Dept Health' }, tender: { status: 'active', value: { amount: 3000, currency: 'ZAR' } }, awards: [] },
       { ocid: '004', buyer: { name: 'SAPS' }, tender: { status: 'active', value: { amount: 5000, currency: 'ZAR' } }, awards: [] },
     ];
-    globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => multiReleases });
+    globalThis.fetch = async () => ({ ok: true, status: 200, text: async () => JSON.stringify(multiReleases) });
     const result = await aggregate_buyers({ pageSize: 10, maxPages: 1 });
     assert.equal(result[0].name, 'Dept Health');
     assert.equal(result[0].tenderCount, 3);
@@ -125,7 +125,7 @@ describe('edge cases', () => {
   it('aggregate_suppliers handles releases with no awards', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{ ocid: 'x', buyer: { name: 'Dept A' }, tender: { status: 'active' }, awards: [] }],
+      text: async () => JSON.stringify([{ ocid: 'x', buyer: { name: 'Dept A' }, tender: { status: 'active' }, awards: [] }]),
     });
     const result = await aggregate_suppliers({ pageSize: 10, maxPages: 1 });
     assert.deepEqual(result, []);
@@ -134,7 +134,7 @@ describe('edge cases', () => {
   it('aggregate_buyers handles releases with no buyer field', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{ ocid: 'x', tender: { status: 'active' }, awards: [] }],
+      text: async () => JSON.stringify([{ ocid: 'x', tender: { status: 'active' }, awards: [] }]),
     });
     const result = await aggregate_buyers({ pageSize: 10, maxPages: 1 });
     assert.deepEqual(result, []);
@@ -143,12 +143,12 @@ describe('edge cases', () => {
   it('aggregate_suppliers handles missing award value gracefully', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{
+      text: async () => JSON.stringify([{
         ocid: 'x',
         buyer: { name: 'Dept A' },
         tender: { status: 'active' },
-        awards: [{ suppliers: [{ name: 'No Value Co' }] }], // no value field
-      }],
+        awards: [{ suppliers: [{ name: 'No Value Co' }] }],
+      }]),
     });
     const result = await aggregate_suppliers({ pageSize: 10, maxPages: 1 });
     assert.equal(result[0].name, 'No Value Co');
@@ -158,10 +158,10 @@ describe('edge cases', () => {
   it('aggregate_suppliers falls back to "Unknown" for supplier with no name or id', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{
+      text: async () => JSON.stringify([{
         ocid: 'x', buyer: { name: 'Dept A' }, tender: { status: 'active' },
         awards: [{ value: { amount: 100, currency: 'ZAR' }, suppliers: [{}] }],
-      }],
+      }]),
     });
     const result = await aggregate_suppliers({ pageSize: 10, maxPages: 1 });
     assert.equal(result[0].name, 'Unknown');
@@ -170,7 +170,7 @@ describe('edge cases', () => {
   it('filter_by_status returns empty array when nothing matches', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{ ocid: 'x', tender: { status: 'complete' }, awards: [] }],
+      text: async () => JSON.stringify([{ ocid: 'x', tender: { status: 'complete' }, awards: [] }]),
     });
     const result = await filter_by_status({ status: 'active', pageSize: 10, maxPages: 1 });
     assert.deepEqual(result, []);
@@ -179,7 +179,7 @@ describe('edge cases', () => {
   it('sum_values returns zero total for releases with no matching field items', async () => {
     globalThis.fetch = async () => ({
       ok: true, status: 200,
-      json: async () => [{ ocid: 'x', tender: { status: 'active' }, awards: [], contracts: [] }],
+      text: async () => JSON.stringify([{ ocid: 'x', tender: { status: 'active' }, awards: [], contracts: [] }]),
     });
     const result = await sum_values({ field: 'awards', pageSize: 10, maxPages: 1 });
     assert.equal(result.total, 0);
@@ -195,7 +195,7 @@ describe('edge cases', () => {
       awards: [{ value: { amount: (15 - i) * 1000, currency: 'ZAR' }, suppliers: [{ name: `Supplier ${i}` }] }],
       contracts: [],
     }));
-    globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => manySuppliers });
+    globalThis.fetch = async () => ({ ok: true, status: 200, text: async () => JSON.stringify(manySuppliers) });
     const result = await aggregate_suppliers({ pageSize: 20, maxPages: 1 }); // no topN param
     assert.equal(result.length, 10);
   });

@@ -25,21 +25,42 @@ async function fetchWithRetry(url, attempt = 0) {
   return res;
 }
 
+function defaultDateRange() {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - 30);
+  return {
+    dateFrom: from.toISOString().slice(0, 10),
+    dateTo: to.toISOString().slice(0, 10),
+  };
+}
+
 export async function fetch_releases(params = {}) {
   const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
   const maxPages = params.maxPages ?? DEFAULT_MAX_PAGES;
   const startPage = params.pageNumber ?? 1;
+  const { dateFrom, dateTo } = {
+    ...defaultDateRange(),
+    ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+    ...(params.dateTo ? { dateTo: params.dateTo } : {}),
+  };
 
   const releases = [];
   for (let page = startPage; page < startPage + maxPages; page++) {
     const url = new URL('/api/OCDSReleases', BASE_URL);
     url.searchParams.set('PageNumber', String(page));
     url.searchParams.set('PageSize', String(pageSize));
-    if (params.dateFrom) url.searchParams.set('dateFrom', params.dateFrom);
-    if (params.dateTo) url.searchParams.set('dateTo', params.dateTo);
+    url.searchParams.set('dateFrom', dateFrom);
+    url.searchParams.set('dateTo', dateTo);
 
     const res = await fetchWithRetry(url.toString());
-    const body = await res.json();
+    const text = await res.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw new Error(`API returned non-JSON response: ${text.slice(0, 200)}`);
+    }
     let items;
     if (Array.isArray(body)) {
       items = body;

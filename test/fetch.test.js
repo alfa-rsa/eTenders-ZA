@@ -22,7 +22,7 @@ describe('fetch_releases', () => {
     globalThis.fetch = async () => ({
       ok: true,
       status: 200,
-      json: async () => mockReleases,
+      text: async () => JSON.stringify(mockReleases),
     });
 
     const result = await fetch_releases({ pageSize: 2, maxPages: 1 });
@@ -38,7 +38,7 @@ describe('fetch_releases', () => {
       return {
         ok: true,
         status: 200,
-        json: async () => mockReleases,
+        text: async () => JSON.stringify(mockReleases),
       };
     };
 
@@ -53,7 +53,7 @@ describe('fetch_releases', () => {
       return {
         ok: true,
         status: 200,
-        json: async () => mockReleases.slice(0, 1), // 1 item < pageSize of 10
+        text: async () => JSON.stringify(mockReleases.slice(0, 1)), // 1 item < pageSize of 10
       };
     };
 
