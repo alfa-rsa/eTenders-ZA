@@ -35,6 +35,29 @@ function defaultDateRange() {
   };
 }
 
+function matchesKeyword(release, keyword) {
+  const text = [
+    release.tender?.title ?? '',
+    release.tender?.description ?? '',
+  ].join(' ').toLowerCase();
+  return text.includes(keyword.toLowerCase());
+}
+
+function matchesProvince(release, province) {
+  return release.tender?.province?.toLowerCase() === province.toLowerCase();
+}
+
+function applyFilters(releases, params) {
+  let result = releases;
+  if (params.province) {
+    result = result.filter(r => matchesProvince(r, params.province));
+  }
+  if (params.keyword) {
+    result = result.filter(r => matchesKeyword(r, params.keyword));
+  }
+  return result;
+}
+
 export async function fetch_releases(params = {}) {
   const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
   const maxPages = params.maxPages ?? DEFAULT_MAX_PAGES;
@@ -74,7 +97,7 @@ export async function fetch_releases(params = {}) {
     releases.push(...items);
     if (items.length < pageSize) break;
   }
-  return releases;
+  return applyFilters(releases, { province: params.province, keyword: params.keyword });
 }
 
 export async function fetch_release_by_ocid(params = {}) {
